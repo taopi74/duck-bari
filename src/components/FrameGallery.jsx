@@ -60,14 +60,6 @@ function FrameGallery({ selectedFrame, onSelectFrame }) {
     <div className="frame-gallery">
       <div className="gallery-header">
         <h3>ফ্রেম নির্বাচন করুন</h3>
-        <div className="gallery-controls">
-          <button className="scroll-btn" onClick={() => scroll('left')}>
-            ❮
-          </button>
-          <button className="scroll-btn" onClick={() => scroll('right')}>
-            ❯
-          </button>
-        </div>
       </div>
 
       <div className="frames-scroll-container" ref={scrollContainerRef}>

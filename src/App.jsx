@@ -7,7 +7,7 @@ import './App.css';
 const CANVAS_SIZE = 1080;
 
 function App() {
-  const [selectedFrame, setSelectedFrame] = useState(null);
+  const [selectedFrame, setSelectedFrame] = useState('/frames/frame7.png');
   const [userPhoto, setUserPhoto] = useState(null);
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState(0);
@@ -53,10 +53,10 @@ function App() {
       <header className="app-header">
         <div className="header-content">
           <div className="logo">
-            <h1>আঙ্গর<br />গফরগাঁও</h1>
-            <img src="/bd-flag.svg" alt="BD Flag" style={{ width: '40px', height: 'auto', borderRadius: '4px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }} />
+            <h1>আঙ্গর গফরগাঁও</h1>
+            <img src="/bd-flag.svg" alt="BD Flag" className="header-flag" />
           </div>
-          <nav className="nav-tabs"><button className="nav-tab active">আঙ্গর MP এর সাথে ছবি</button></nav>
+          {/* Nav removed as per request */}
         </div>
       </header>
       <main className="app-main">
