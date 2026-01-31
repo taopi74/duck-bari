@@ -22,6 +22,7 @@ function CanvasComponent({
     const fileInputRef = useRef(null);
     const [canvas, setCanvas] = useState(null);
     const [photoObj, setPhotoObj] = useState(null);
+    const [frameObj, setFrameObj] = useState(null);
     const [showPlaceholder, setShowPlaceholder] = useState(true);
 
     // Initialize Canvas
@@ -33,7 +34,6 @@ function CanvasComponent({
             backgroundColor: '#ffffff',
             selection: false,
             preserveObjectStacking: true,
-            controlsAboveOverlay: true,
         });
         setCanvas(c);
         if (externalCanvasRef) externalCanvasRef.current = c;
@@ -52,9 +52,17 @@ function CanvasComponent({
         };
     }, [externalCanvasRef]);
 
-    // Load Frame as Overlay
+    // Load Frame as BACKGROUND layer
+    // We put frame at back because it has opaque checkerboard.
+    // The photo will be ON TOP but masked to hide the checkerboard.
     useEffect(() => {
         if (!canvas || !selectedFrame) return;
+
+        // Remove old frame object if exists
+        if (frameObj) {
+            canvas.remove(frameObj);
+        }
+
         const img = new Image();
         img.crossOrigin = 'anonymous';
         img.onload = () => {
@@ -62,130 +70,145 @@ function CanvasComponent({
             fabricImg.set({
                 scaleX: CANVAS_SIZE / fabricImg.width,
                 scaleY: CANVAS_SIZE / fabricImg.height,
-                left: 0, top: 0,
-                originX: 'left', originY: 'top',
-                selectable: false, evented: false,
+                left: 0,
+                top: 0,
+                originX: 'left',
+                originY: 'top',
+                selectable: false,
+                evented: false,
+                isFrame: true,
             });
-            canvas.overlayImage = fabricImg;
+
+            canvas.add(fabricImg);
+            // Send frame to BACK (bottom layer)
+            canvas.sendObjectToBack(fabricImg);
+            setFrameObj(fabricImg);
             canvas.requestRenderAll();
         };
         img.src = selectedFrame;
     }, [canvas, selectedFrame]);
 
-    // Load User Photo - using frame-specific position
+    // Load User Photo - placed ON TOP but CLIPPED by frame shape
     useEffect(() => {
         console.log('[DEBUG] Photo useEffect triggered, userPhoto:', userPhoto);
-        if (!canvas || !userPhoto?.file) {
-            console.log('[DEBUG] Early return - canvas:', !!canvas, 'userPhoto:', !!userPhoto);
-            return;
-        }
-        console.log('[DEBUG] Starting photo load with frame config:', currentFrameConfig);
+        if (!canvas || !userPhoto?.file) return;
+
+        // Remove existing user photos
         canvas.getObjects().forEach(obj => {
-            if (obj.selectable) canvas.remove(obj);
-        });
-        const url = URL.createObjectURL(userPhoto.file);
-        console.log('[DEBUG] Blob URL created:', url);
-        const img = new Image();
-        img.onload = () => {
-            console.log('[DEBUG] Image loaded! Dimensions:', img.width, 'x', img.height);
-            const fabricImg = new fabric.FabricImage(img);
-
-            // Calculate scale based on frame's transparent area size
-            let targetSize;
-            if (currentFrameConfig.shape === 'circle') {
-                targetSize = currentFrameConfig.photoRadius * 2; // diameter
-            } else {
-                targetSize = Math.max(currentFrameConfig.photoWidth, currentFrameConfig.photoHeight);
+            if (obj.selectable && !obj.isFrame) {
+                canvas.remove(obj);
             }
+        });
 
-            const baseScale = Math.max(
-                targetSize / fabricImg.width,
-                targetSize / fabricImg.height
-            );
+        const url = URL.createObjectURL(userPhoto.file);
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
 
-            fabricImg.baseScale = baseScale;
-            fabricImg.set({
-                // Use frame-specific position
-                left: currentFrameConfig.photoX,
-                top: currentFrameConfig.photoY,
-                originX: 'center',
-                originY: 'center',
-                scaleX: baseScale,
-                scaleY: baseScale,
-                selectable: true,
-                evented: true,
-                cornerColor: '#00A651',
-                cornerStrokeColor: '#fff',
-                cornerSize: 36,
-                transparentCorners: false,
-                borderColor: '#00A651',
-            });
-            canvas.add(fabricImg);
-            canvas.sendObjectToBack(fabricImg);
-            canvas.setActiveObject(fabricImg);
-            setPhotoObj(fabricImg);
-            setShowPlaceholder(false);
-            console.log('[DEBUG] Photo added at position:', currentFrameConfig.photoX, currentFrameConfig.photoY);
-            if (onPhotoLoaded) onPhotoLoaded();
-            URL.revokeObjectURL(url);
-            canvas.requestRenderAll();
+        img.onload = () => {
+            try {
+                const fabricImg = new fabric.FabricImage(img);
+
+                // Calculate target dimensions based on frame config
+                let targetWidth, targetHeight;
+                if (currentFrameConfig.shape === 'circle') {
+                    targetWidth = currentFrameConfig.photoRadius * 2;
+                    targetHeight = currentFrameConfig.photoRadius * 2;
+                } else {
+                    targetWidth = currentFrameConfig.photoWidth;
+                    targetHeight = currentFrameConfig.photoHeight;
+                }
+
+                // Calculate scale factors for width and height coverage
+                const scaleX = targetWidth / fabricImg.width;
+                const scaleY = targetHeight / fabricImg.height;
+
+                // "Cover" logic: use the LARGER scale factor ensuring full coverage
+                // Added 1.05 multiplier (5% extra) as safety margin
+                const baseScale = Math.max(scaleX, scaleY) * 1.05;
+
+                fabricImg.baseScale = baseScale;
+                fabricImg.set({
+                    left: currentFrameConfig.photoX,
+                    top: currentFrameConfig.photoY,
+                    originX: 'center',
+                    originY: 'center',
+                    scaleX: baseScale,
+                    scaleY: baseScale,
+                    selectable: true,
+                    evented: true,
+                    cornerColor: '#00A651',
+                    cornerStrokeColor: '#fff',
+                    cornerSize: 36,
+                    transparentCorners: false,
+                    borderColor: '#00A651',
+                });
+
+                // --- KEY FIX: ABSOLUTE CLIPPING ---
+                // We create a clip path exactly where the frame hole is supposed to be.
+                // This clips the photo so it fits "inside" the frame, even though the photo is physically on top.
+                let clipPath;
+                if (currentFrameConfig.shape === 'circle') {
+                    clipPath = new fabric.Circle({
+                        radius: currentFrameConfig.photoRadius,
+                        left: currentFrameConfig.photoX,
+                        top: currentFrameConfig.photoY,
+                        originX: 'center',
+                        originY: 'center',
+                        absolutePositioned: true, // Crucial: clips relative to canvas, not photo
+                    });
+                } else {
+                    clipPath = new fabric.Rect({
+                        width: currentFrameConfig.photoWidth,
+                        height: currentFrameConfig.photoHeight,
+                        left: currentFrameConfig.photoX,
+                        top: currentFrameConfig.photoY,
+                        rx: currentFrameConfig.cornerRadius || 0, // Rounded corners X
+                        ry: currentFrameConfig.cornerRadius || 0, // Rounded corners Y
+                        originX: 'center',
+                        originY: 'center',
+                        absolutePositioned: true,
+                    });
+                }
+
+                fabricImg.clipPath = clipPath;
+
+                canvas.add(fabricImg);
+
+                // Bring Photo to FRONT so it covers the opaque checkerboard
+                canvas.bringObjectToFront(fabricImg);
+
+                canvas.setActiveObject(fabricImg);
+                setPhotoObj(fabricImg);
+                setShowPlaceholder(false);
+
+                if (onPhotoLoaded) onPhotoLoaded();
+                URL.revokeObjectURL(url);
+                canvas.requestRenderAll();
+                console.log('[DEBUG] Photo loaded on TOP with absolute clipping');
+
+            } catch (error) {
+                console.error('Error creating fabric image:', error);
+            }
         };
-        img.onerror = (err) => {
-            console.error('[DEBUG] Image load FAILED:', err);
-            alert('ছবি লোড করতে সমস্যা!');
-            URL.revokeObjectURL(url);
-        };
+
         img.src = url;
-    }, [canvas, userPhoto, onPhotoLoaded, currentFrameConfig]);
+    }, [canvas, userPhoto, onPhotoLoaded, currentFrameConfig, selectedFrame]);
 
-    // Sync Controls and reposition when frame changes
+    // Sync Controls
     useEffect(() => {
         if (!canvas || !photoObj || !photoObj.baseScale) return;
 
-        // Recalculate scale based on current frame's transparent area
-        let targetSize;
-        if (currentFrameConfig.shape === 'circle') {
-            targetSize = currentFrameConfig.photoRadius * 2;
-        } else {
-            targetSize = Math.max(currentFrameConfig.photoWidth, currentFrameConfig.photoHeight);
-        }
-
-        const newBaseScale = Math.max(
-            targetSize / photoObj.width,
-            targetSize / photoObj.height
-        );
-
-        photoObj.baseScale = newBaseScale;
-        const effectiveScale = newBaseScale * zoom;
+        const effectiveScale = photoObj.baseScale * zoom;
 
         photoObj.set({
-            left: currentFrameConfig.photoX,
-            top: currentFrameConfig.photoY,
             scaleX: effectiveScale,
             scaleY: effectiveScale,
             angle: rotation
         });
 
-        if (photoShape === 'circle') {
-            photoObj.set('clipPath', new fabric.Circle({
-                radius: photoObj.width / 2,
-                originX: 'center',
-                originY: 'center',
-            }));
-        } else if (photoShape === 'square') {
-            const size = Math.min(photoObj.width, photoObj.height);
-            photoObj.set('clipPath', new fabric.Rect({
-                width: size,
-                height: size,
-                originX: 'center',
-                originY: 'center',
-            }));
-        } else {
-            photoObj.set('clipPath', null);
-        }
         photoObj.setCoords();
         canvas.requestRenderAll();
-    }, [canvas, photoObj, zoom, rotation, photoShape, currentFrameConfig]);
+    }, [canvas, photoObj, zoom, rotation]);
 
     const handleFileChange = (e) => {
         const file = e.target.files[0];

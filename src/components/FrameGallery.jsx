@@ -10,57 +10,60 @@ const frames = [
     id: 1,
     src: '/frames/frame12.png',
     name: 'হ্যাঁ - Red Green',
-    photoX: 540,      // center X
-    photoY: 380,      // center Y (upper area)
-    photoRadius: 280, // circular transparent area
+    photoX: 540,
+    photoY: 420,      // Adjusted slightly down
+    photoRadius: 320, // Increased radius to cover checkerboard edges
     shape: 'circle'
   },
   {
     id: 2,
     src: '/frames/frame11.png',
     name: 'গণভোট হ্যাঁ',
-    photoX: 540,      // center X
-    photoY: 340,      // center Y (upper area)
-    photoRadius: 260, // circular transparent area
+    photoX: 540,
+    photoY: 400,      // Adjusted
+    photoRadius: 310, // Increased radius
     shape: 'circle'
   },
   {
     id: 3,
     src: '/frames/frame7.png',
     name: 'Premium Gold',
-    photoX: 540,      // center X
-    photoY: 420,      // center Y (middle-upper)
-    photoWidth: 580,  // rectangular width
-    photoHeight: 400, // rectangular height
+    photoX: 540,
+    photoY: 410,
+    photoWidth: 700,  // Increased width
+    photoHeight: 500, // Increased height
+    cornerRadius: 30, // Added radius
     shape: 'rectangle'
   },
   {
     id: 4,
     src: '/frames/frame8.png',
     name: 'Modern Flag',
-    photoX: 540,      // center X
-    photoY: 400,      // center Y
-    photoRadius: 290, // oval/circular transparent area
+    photoX: 540,
+    photoY: 420,
+    photoRadius: 315, // Increased radius
     shape: 'circle'
   },
   {
     id: 5,
     src: '/frames/frame5.png',
     name: 'Vibrant Green',
-    photoX: 540,      // center X
-    photoY: 400,      // center Y
-    photoWidth: 600,  // rectangular with rounded corners
-    photoHeight: 480,
+    photoX: 540,
+    photoY: 460,      // Adjusted Y
+    photoWidth: 720,  // Increased width
+    photoHeight: 550, // Increased height
+    cornerRadius: 50, // Added significant radius for this style
     shape: 'rectangle'
   },
   {
     id: 6,
     src: '/frames/frame6.png',
     name: 'Classic Campaign',
-    photoX: 540,      // center X
-    photoY: 450,      // center Y
-    photoWidth: 480,  // square frame
-    photoHeight: 480,
+    photoX: 540,
+    photoY: 480,
+    photoWidth: 600,  // Increased square size
+    photoHeight: 600,
+    cornerRadius: 15, // Slight radius
     shape: 'rectangle'
   },
 ];
