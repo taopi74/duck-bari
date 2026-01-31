@@ -13,10 +13,24 @@
 }
 
 .frame-gallery h3 {
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--text-dark);
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--primary-green);
     margin: 0;
+    position: relative;
+    padding-left: 0.75rem;
+}
+
+.frame-gallery h3::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 18px;
+    background-color: var(--primary-green);
+    border-radius: 2px;
 }
 
 .gallery-controls {
