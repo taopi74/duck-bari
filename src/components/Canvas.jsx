@@ -52,19 +52,21 @@ function CanvasComponent({
         };
     }, [externalCanvasRef]);
 
-    // Load Frame as BACKGROUND layer
-    // We put frame at back because it has opaque checkerboard.
-    // The photo will be ON TOP but masked to hide the checkerboard.
+    // Load Frame as TOP layer (Overlay)
     useEffect(() => {
         if (!canvas || !selectedFrame) return;
 
         // Remove old frame object if exists
+        // Note: In this strategy, Frame is ALWAYS ON TOP
         if (frameObj) {
             canvas.remove(frameObj);
         }
 
         const img = new Image();
         img.crossOrigin = 'anonymous';
+        // Add a timestamp to bypass browser cache since we just modified the images
+        img.src = selectedFrame + '?t=' + new Date().getTime();
+
         img.onload = () => {
             const fabricImg = new fabric.FabricImage(img);
             fabricImg.set({
@@ -80,15 +82,13 @@ function CanvasComponent({
             });
 
             canvas.add(fabricImg);
-            // Send frame to BACK (bottom layer)
-            canvas.sendObjectToBack(fabricImg);
+            canvas.bringObjectToFront(fabricImg); // Ensure frame is ON TOP
             setFrameObj(fabricImg);
             canvas.requestRenderAll();
         };
-        img.src = selectedFrame;
     }, [canvas, selectedFrame]);
 
-    // Load User Photo - placed ON TOP but CLIPPED by frame shape
+    // Load User Photo - BEHIND the frame
     useEffect(() => {
         console.log('[DEBUG] Photo useEffect triggered, userPhoto:', userPhoto);
         if (!canvas || !userPhoto?.file) return;
@@ -108,23 +108,21 @@ function CanvasComponent({
             try {
                 const fabricImg = new fabric.FabricImage(img);
 
-                // Calculate target dimensions based on frame config
-                let targetWidth, targetHeight;
-                if (currentFrameConfig.shape === 'circle') {
-                    targetWidth = currentFrameConfig.photoRadius * 2;
-                    targetHeight = currentFrameConfig.photoRadius * 2;
-                } else {
-                    targetWidth = currentFrameConfig.photoWidth;
-                    targetHeight = currentFrameConfig.photoHeight;
-                }
+                // Simple Auto-Fit Logic
+                // We target a reasonably large size to cover the hole, 
+                // e.g. 600px or based on the hole size if we want.
+                // Since it's behind the frame, being 'too big' is fine (it gets hidden).
+                // Being 'too small' shows white background.
 
-                // Calculate scale factors for width and height coverage
-                const scaleX = targetWidth / fabricImg.width;
-                const scaleY = targetHeight / fabricImg.height;
+                // Let's target the approximate hole size we know
+                let targetSize = 650; // Safe default big enough for all frames
+                if (currentFrameConfig.photoRadius) targetSize = currentFrameConfig.photoRadius * 2.5;
+                if (currentFrameConfig.photoWidth) targetSize = Math.max(currentFrameConfig.photoWidth, currentFrameConfig.photoHeight) * 1.2;
 
-                // "Cover" logic: use the LARGER scale factor ensuring full coverage
-                // Added 1.05 multiplier (5% extra) as safety margin
-                const baseScale = Math.max(scaleX, scaleY) * 1.05;
+                const baseScale = Math.max(
+                    targetSize / fabricImg.width,
+                    targetSize / fabricImg.height
+                );
 
                 fabricImg.baseScale = baseScale;
                 fabricImg.set({
@@ -143,39 +141,18 @@ function CanvasComponent({
                     borderColor: '#00A651',
                 });
 
-                // --- KEY FIX: ABSOLUTE CLIPPING ---
-                // We create a clip path exactly where the frame hole is supposed to be.
-                // This clips the photo so it fits "inside" the frame, even though the photo is physically on top.
-                let clipPath;
-                if (currentFrameConfig.shape === 'circle') {
-                    clipPath = new fabric.Circle({
-                        radius: currentFrameConfig.photoRadius,
-                        left: currentFrameConfig.photoX,
-                        top: currentFrameConfig.photoY,
-                        originX: 'center',
-                        originY: 'center',
-                        absolutePositioned: true, // Crucial: clips relative to canvas, not photo
-                    });
-                } else {
-                    clipPath = new fabric.Rect({
-                        width: currentFrameConfig.photoWidth,
-                        height: currentFrameConfig.photoHeight,
-                        left: currentFrameConfig.photoX,
-                        top: currentFrameConfig.photoY,
-                        rx: currentFrameConfig.cornerRadius || 0, // Rounded corners X
-                        ry: currentFrameConfig.cornerRadius || 0, // Rounded corners Y
-                        originX: 'center',
-                        originY: 'center',
-                        absolutePositioned: true,
-                    });
-                }
-
-                fabricImg.clipPath = clipPath;
+                // NO CLIP PATH NEEDED ANYMORE!
+                // The frame itself has transparency now.
 
                 canvas.add(fabricImg);
 
-                // Bring Photo to FRONT so it covers the opaque checkerboard
-                canvas.bringObjectToFront(fabricImg);
+                // Send Photo to BACK
+                canvas.sendObjectToBack(fabricImg);
+
+                // Ensure frame stays on top
+                if (frameObj) {
+                    canvas.bringObjectToFront(frameObj);
+                }
 
                 canvas.setActiveObject(fabricImg);
                 setPhotoObj(fabricImg);
@@ -184,7 +161,7 @@ function CanvasComponent({
                 if (onPhotoLoaded) onPhotoLoaded();
                 URL.revokeObjectURL(url);
                 canvas.requestRenderAll();
-                console.log('[DEBUG] Photo loaded on TOP with absolute clipping');
+                console.log('[DEBUG] Photo loaded behind frame');
 
             } catch (error) {
                 console.error('Error creating fabric image:', error);
@@ -192,7 +169,7 @@ function CanvasComponent({
         };
 
         img.src = url;
-    }, [canvas, userPhoto, onPhotoLoaded, currentFrameConfig, selectedFrame]);
+    }, [canvas, userPhoto, onPhotoLoaded, currentFrameConfig, selectedFrame, frameObj]);
 
     // Sync Controls
     useEffect(() => {

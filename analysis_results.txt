@@ -1,0 +1,36 @@
+FILE: frame11.png (Fake Trans)
+  Bounds: 512,512 to 512,512
+  Center: 512, 512
+  Size: 0 x 0
+  Radius: 0
+--------------------
+FILE: frame12.png (Fake Trans)
+  Bounds: 508,259 to 645,515
+  Center: 576, 387
+  Size: 137 x 256
+  Radius: 68
+--------------------
+FILE: frame5.png (Fake Trans)
+  Bounds: 171,260 to 851,749
+  Center: 511, 504
+  Size: 680 x 489
+  Radius: 340
+--------------------
+FILE: frame6.png (Fake Trans)
+  Bounds: 294,380 to 729,800
+  Center: 511, 590
+  Size: 435 x 420
+  Radius: 217
+--------------------
+FILE: frame7.png (Fake Trans)
+  Bounds: 504,504 to 519,519
+  Center: 511, 511
+  Size: 15 x 15
+  Radius: 7
+--------------------
+FILE: frame8.png (Fake Trans)
+  Bounds: 424,218 to 801,521
+  Center: 612, 369
+  Size: 377 x 303
+  Radius: 188
+--------------------
