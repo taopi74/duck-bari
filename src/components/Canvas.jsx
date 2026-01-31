@@ -16,15 +16,14 @@ function CanvasComponent({
 }) {
     const containerRef = useRef(null);
     const canvasElRef = useRef(null);
+    const fileInputRef = useRef(null);
     const [canvas, setCanvas] = useState(null);
     const [photoObj, setPhotoObj] = useState(null);
-    const fileInputRef = useRef(null);
     const [showPlaceholder, setShowPlaceholder] = useState(true);
 
-    // 1. Initialize Canvas
+    // Initialize Canvas
     useEffect(() => {
         if (!canvasElRef.current) return;
-
         const c = new fabric.Canvas(canvasElRef.current, {
             width: CANVAS_SIZE,
             height: CANVAS_SIZE,
@@ -33,7 +32,6 @@ function CanvasComponent({
             preserveObjectStacking: true,
             controlsAboveOverlay: true,
         });
-
         setCanvas(c);
         if (externalCanvasRef) externalCanvasRef.current = c;
 
@@ -43,7 +41,6 @@ function CanvasComponent({
             c.setZoom(w / CANVAS_SIZE);
             c.setDimensions({ width: w, height: w });
         };
-
         resize();
         window.addEventListener('resize', resize);
         return () => {
@@ -52,10 +49,9 @@ function CanvasComponent({
         };
     }, [externalCanvasRef]);
 
-    // 2. Load Frame as Overlay
+    // Load Frame as Overlay
     useEffect(() => {
         if (!canvas || !selectedFrame) return;
-
         const img = new Image();
         img.crossOrigin = 'anonymous';
         img.onload = () => {
@@ -73,31 +69,28 @@ function CanvasComponent({
         img.src = selectedFrame;
     }, [canvas, selectedFrame]);
 
-    // 3. Load User Photo
+    // Load User Photo
     useEffect(() => {
-        if (!canvas || !userPhoto?.file) return;
-
-        // Clean up old selectable objects
+        console.log('[DEBUG] Photo useEffect triggered, userPhoto:', userPhoto);
+        if (!canvas || !userPhoto?.file) {
+            console.log('[DEBUG] Early return - canvas:', !!canvas, 'userPhoto:', !!userPhoto);
+            return;
+        }
+        console.log('[DEBUG] Starting photo load...');
         canvas.getObjects().forEach(obj => {
             if (obj.selectable) canvas.remove(obj);
         });
-
-        console.log('[DEBUG] userPhoto effect triggered, userPhoto:', userPhoto);
         const url = URL.createObjectURL(userPhoto.file);
+        console.log('[DEBUG] Blob URL created:', url);
         const img = new Image();
         img.onload = () => {
-            console.log('[DEBUG] Image loaded successfully');
+            console.log('[DEBUG] Image loaded! Dimensions:', img.width, 'x', img.height);
             const fabricImg = new fabric.FabricImage(img);
-
-            // Calculate base scale (auto-fit 70%)
             const baseScale = Math.max(
                 (CANVAS_SIZE * 0.7) / fabricImg.width,
                 (CANVAS_SIZE * 0.7) / fabricImg.height
             );
-
-            // Store baseScale on the object for later use
             fabricImg.baseScale = baseScale;
-
             fabricImg.set({
                 left: CANVAS_SIZE / 2,
                 top: CANVAS_SIZE / 2,
@@ -113,39 +106,33 @@ function CanvasComponent({
                 transparentCorners: false,
                 borderColor: '#00A651',
             });
-
             canvas.add(fabricImg);
-            canvas.sendToBack(fabricImg);
+            canvas.sendObjectToBack(fabricImg);
             canvas.setActiveObject(fabricImg);
-
             setPhotoObj(fabricImg);
             setShowPlaceholder(false);
-            onPhotoLoaded?.();
-
+            console.log('[DEBUG] Photo added to canvas, placeholder hidden');
+            if (onPhotoLoaded) onPhotoLoaded();
             URL.revokeObjectURL(url);
             canvas.requestRenderAll();
         };
         img.onerror = (err) => {
             console.error('[DEBUG] Image load FAILED:', err);
-            alert("ছবি লোড করতে সমস্যা হয়েছে।");
+            alert('ছবি লোড করতে সমস্যা!');
             URL.revokeObjectURL(url);
         };
         img.src = url;
     }, [canvas, userPhoto, onPhotoLoaded]);
 
-    // 4. Sync Controls (Zoom as multiplier, Relative ClipPath)
+    // Sync Controls
     useEffect(() => {
         if (!canvas || !photoObj || !photoObj.baseScale) return;
-
-        // Apply zoom as MULTIPLIER of baseScale
         const effectiveScale = photoObj.baseScale * zoom;
         photoObj.set({
             scaleX: effectiveScale,
             scaleY: effectiveScale,
             angle: rotation
         });
-
-        // Relative ClipPath (moves WITH the image)
         if (photoShape === 'circle') {
             photoObj.set('clipPath', new fabric.Circle({
                 radius: photoObj.width / 2,
@@ -163,32 +150,26 @@ function CanvasComponent({
         } else {
             photoObj.set('clipPath', null);
         }
-
         photoObj.setCoords();
         canvas.requestRenderAll();
     }, [canvas, photoObj, zoom, rotation, photoShape]);
 
     const handleFileChange = (e) => {
-        console.log('[DEBUG] File input change event triggered');
         const file = e.target.files[0];
-        console.log('[DEBUG] Selected file:', file);
-        if (file && onUpload) {
-            console.log('[DEBUG] Calling onUpload callback');
-            onUpload(file);
-        }
+        if (file && onUpload) onUpload(file);
         e.target.value = '';
     };
 
     return (
         <div className="canvas-container">
-            <input type="file" ref={fileInputRef} className="file-input-hidden" accept="image/*" onChange={handleFileChange} />
+            <input type="file" ref={fileInputRef} style={{ display: 'none' }} accept="image/*" onChange={handleFileChange} />
             <div className="canvas-wrapper">
                 <div className="canvas-inner" ref={containerRef}>
                     <canvas ref={canvasElRef} />
                     {showPlaceholder && (
                         <div className="upload-placeholder">
                             <button className="upload-btn-overlay" onClick={() => fileInputRef.current?.click()}>
-                                ছবি নির্বাচন করুন
+                                📷 ছবি নির্বাচন করুন
                             </button>
                         </div>
                     )}
@@ -197,9 +178,6 @@ function CanvasComponent({
                             📷 পরিবর্তন
                         </button>
                     )}
-                </div>
-                <div className="canvas-instructions">
-                    <strong>📌 নির্দেশনা:</strong> ছবি সঠিক স্থানে বসাতে ছোট-বড় বা ড্র্যাগ করুন।
                 </div>
             </div>
         </div>

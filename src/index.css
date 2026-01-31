@@ -10,6 +10,14 @@
   --border-color: #475569;
   --success: #10b981;
   --shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+
+  /* Missing variables used by Canvas.css and Controls.css */
+  --primary-green: #00A651;
+  --dark-green: #008040;
+  --white: #ffffff;
+  --text-gray: #6b7280;
+  --text-dark: #1f2937;
+  --bg-gray: #f3f4f6;
 }
 
 * {

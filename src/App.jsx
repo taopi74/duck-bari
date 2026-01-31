@@ -9,25 +9,22 @@ const CANVAS_SIZE = 1080;
 function App() {
   const [selectedFrame, setSelectedFrame] = useState('/frames/frame12.png');
   const [userPhoto, setUserPhoto] = useState(null);
-  const [zoom, setZoom] = useState(1); // Multiplier: 1 = 100%
+  const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState(0);
   const [photoShape, setPhotoShape] = useState('circle');
   const canvasRef = useRef(null);
 
   const handlePhotoUpload = useCallback((file) => {
-    console.log('[DEBUG] App.handlePhotoUpload called with:', file);
     setUserPhoto({ file, id: Date.now() });
     setZoom(1);
     setRotation(0);
     setPhotoShape('circle');
-    console.log('[DEBUG] App state updated');
   }, []);
 
   const handleReset = useCallback(() => {
     setZoom(1);
     setRotation(0);
     setPhotoShape('circle');
-
     if (canvasRef.current) {
       const userImage = canvasRef.current.getObjects().find(o => o.selectable);
       if (userImage) {
@@ -41,14 +38,10 @@ function App() {
   const handleDownload = useCallback(() => {
     const c = canvasRef.current;
     if (!c) return;
-
     c.discardActiveObject();
     c.renderAll();
-
-    // Clean multiplier for exact 1080x1080 output
     const multiplier = CANVAS_SIZE / c.getWidth();
     const dataURL = c.toDataURL({ format: 'png', quality: 1, multiplier });
-
     const link = document.createElement('a');
     link.download = `framed-photo-${Date.now()}.png`;
     link.href = dataURL;
@@ -57,13 +50,16 @@ function App() {
 
   return (
     <div className="app">
+      {/* DEBUG: If you see this text, React is working */}
+      <div style={{ background: 'red', color: 'white', padding: '10px', textAlign: 'center', fontSize: '18px' }}>
+        DEBUG: React App Loaded - If you see this, the app is rendering!
+      </div>
       <header className="app-header">
         <div className="header-content">
           <div className="logo"><h1>আমাদের<br />গফরগাঁও</h1></div>
           <nav className="nav-tabs"><button className="nav-tab active">Photo এর ফ্রেম</button></nav>
         </div>
       </header>
-
       <main className="app-main">
         <div className="canvas-section">
           <CanvasComponent
@@ -78,7 +74,6 @@ function App() {
           />
           <FrameGallery selectedFrame={selectedFrame} onSelectFrame={setSelectedFrame} />
         </div>
-
         <Controls
           zoom={zoom}
           onZoomChange={setZoom}
