@@ -31,9 +31,9 @@ function CanvasComponent({
             canvas = new fabric.Canvas(canvasElRef.current, {
                 width: CANVAS_SIZE,
                 height: CANVAS_SIZE,
-                backgroundColor: '#1a1a2e',
+                backgroundColor: null, // Transparent background to prevent "black" look
                 selection: false,
-                allowTouchScrolling: true,
+                allowTouchScrolling: false, // Disable touch scrolling to ensure image dragging works
                 preserveObjectStacking: true, // Key for layering
                 controlsAboveOverlay: true, // Allow selecting objects BEHIND the overlay
             });
@@ -120,8 +120,10 @@ function CanvasComponent({
                 }
 
                 // Apply scale and settings
+                // Apply scale and settings
                 fabricImg.scale(scale);
-                fabricImg.set({
+
+                const imgOptions = {
                     selectable: true,
                     evented: true,
                     hasControls: true,
@@ -129,12 +131,20 @@ function CanvasComponent({
                     lockRotation: false,
                     cornerColor: '#00A651',
                     cornerStrokeColor: '#fff',
-                    cornerSize: 24, // Larger handles for easier touch
+                    cornerSize: 24,
                     transparentCorners: false,
                     borderColor: '#00A651',
                     borderScaleFactor: 2,
-                    clipPath: clipPath,
-                });
+                };
+
+                if (clipPath) {
+                    imgOptions.clipPath = clipPath;
+                } else {
+                    // Explicitly remove any existing clipPath (though new image shouldn't have one)
+                    imgOptions.clipPath = null;
+                }
+
+                fabricImg.set(imgOptions);
 
                 userImageRef.current = fabricImg;
                 canvas.add(fabricImg);
