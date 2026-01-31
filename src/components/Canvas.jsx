@@ -49,7 +49,7 @@ function CanvasComponent({
         };
     }, [externalCanvasRef]);
 
-    // Load Frame as Overlay
+    // Load Frame as Background + Overlay
     useEffect(() => {
         if (!canvas || !selectedFrame) return;
         const img = new Image();
@@ -63,8 +63,27 @@ function CanvasComponent({
                 originX: 'left', originY: 'top',
                 selectable: false, evented: false,
             });
-            canvas.overlayImage = fabricImg;
+            // Store for both background and overlay rendering
+            canvas.frameImage = fabricImg;
+            canvas.backgroundColor = '#ffffff';
+            
+            // Custom render to place frame AFTER objects
+            canvas.renderAll = (function(original) {
+                return function() {
+                    original.call(this);
+                    // Draw frame on top after all objects
+                    if (canvas.frameImage && canvas.contextTop) {
+                        canvas.contextTop.drawImage(
+                            canvas.frameImage._element,
+                            0, 0,
+                            CANVAS_SIZE, CANVAS_SIZE
+                        );
+                    }
+                };
+            })(canvas.renderAll);
+            
             canvas.requestRenderAll();
+            console.log('[v0] Frame loaded and positioned on top');
         };
         img.src = selectedFrame;
     }, [canvas, selectedFrame]);
