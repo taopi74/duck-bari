@@ -52,8 +52,11 @@ function App() {
     <div className="app">
       <header className="app-header">
         <div className="header-content">
-          <div className="logo"><h1>আমাদের<br />গফরগাঁও</h1></div>
-          <nav className="nav-tabs"><button className="nav-tab active">Photo এর ফ্রেম</button></nav>
+          <div className="logo">
+            <h1>আঙ্গর<br />গফরগাঁও</h1>
+            <img src="/bd-flag.svg" alt="BD Flag" style={{ width: '40px', height: 'auto', borderRadius: '4px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }} />
+          </div>
+          <nav className="nav-tabs"><button className="nav-tab active">আঙ্গর MP এর সাথে ছবি</button></nav>
         </div>
       </header>
       <main className="app-main">

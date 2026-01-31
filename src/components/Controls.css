@@ -27,6 +27,7 @@
 }
 
 /* Upload Button */
+/* Upload Button */
 .upload-btn {
     width: 100%;
     padding: 0.875rem 1.5rem;
@@ -34,17 +35,19 @@
     color: var(--white);
     font-size: 1rem;
     font-weight: 600;
-    border-radius: 8px;
+    border-radius: 50px;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    box-shadow: 0 2px 4px rgba(0, 166, 81, 0.2);
+    box-shadow: 0 4px 10px rgba(0, 106, 78, 0.3);
+    transition: all 0.3s ease;
 }
 
 .upload-btn:hover {
     background-color: var(--dark-green);
-    box-shadow: 0 4px 8px rgba(0, 166, 81, 0.3);
+    box-shadow: 0 6px 14px rgba(0, 106, 78, 0.4);
+    transform: translateY(-2px);
 }
 
 .upload-btn .icon {

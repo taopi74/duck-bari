@@ -9,7 +9,7 @@ const frames = [
   {
     id: 3,
     src: '/frames/frame7.png',
-    name: 'Premium Gold',
+    name: 'গোল্ডেন ফ্রেম',
     photoX: 540,
     photoY: 410,
     photoWidth: 620,
@@ -20,7 +20,7 @@ const frames = [
   {
     id: 5,
     src: '/frames/frame5.png',
-    name: 'Vibrant Green',
+    name: 'ভাইব্রেন্ট গ্রিন',
     photoX: 512,
     photoY: 504,
     photoWidth: 680,
@@ -31,7 +31,7 @@ const frames = [
   {
     id: 6,
     src: '/frames/frame6.png',
-    name: 'Classic Campaign',
+    name: 'ক্লাসিক ক্যাম্পেইন',
     photoX: 512,
     photoY: 590,
     photoWidth: 435,

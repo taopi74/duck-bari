@@ -1,3 +1,22 @@
+:root {
+  --primary-green: #006A4E;
+  --dark-green: #00503B;
+  --light-green: #E6F4F0;
+  --accent-red: #F42A41;
+  --bg-gray: #FAFAFA;
+  --white: #FFFFFF;
+  --text-dark: #2F3542;
+  --text-gray: #747D8C;
+  --border-color: #E1E8ED;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  background-color: var(--bg-gray);
+  color: var(--text-dark);
+}
+
 .app {
   min-height: 100vh;
   display: flex;
@@ -22,12 +41,20 @@
   gap: 1rem;
 }
 
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .logo h1 {
-  font-size: 1.25rem;
-  font-weight: 700;
+  font-size: 1.5rem;
+  font-weight: 800;
   color: var(--primary-green);
-  line-height: 1.2;
+  line-height: 1.1;
   margin: 0;
+  text-transform: uppercase;
+  letter-spacing: -0.5px;
 }
 
 .nav-tabs {
@@ -36,22 +63,27 @@
 }
 
 .nav-tab {
-  padding: 0.5rem 1rem;
+  padding: 0.6rem 1.25rem;
   background-color: var(--primary-green);
   color: var(--white);
-  font-size: 0.875rem;
-  font-weight: 500;
-  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border-radius: 50px;
+  border: none;
+  box-shadow: 0 4px 6px rgba(0, 106, 78, 0.2);
   transition: all 0.3s ease;
+  cursor: default;
 }
 
 .nav-tab:hover {
   background-color: var(--dark-green);
+  transform: translateY(-1px);
 }
 
 .nav-tab.active {
-  background-color: var(--primary-green);
+  background-color: var(--accent-red);
   color: var(--white);
+  box-shadow: 0 4px 6px rgba(244, 42, 65, 0.3);
 }
 
 /* Main Content - Mobile First */
