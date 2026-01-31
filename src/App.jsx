@@ -7,7 +7,7 @@ import './App.css';
 const CANVAS_SIZE = 1080;
 
 function App() {
-  const [selectedFrame, setSelectedFrame] = useState('/frames/frame12.png');
+  const [selectedFrame, setSelectedFrame] = useState(null);
   const [userPhoto, setUserPhoto] = useState(null);
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState(0);

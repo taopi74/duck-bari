@@ -48,7 +48,7 @@ function FrameGallery({ selectedFrame, onSelectFrame }) {
 
   const scroll = (direction) => {
     if (scrollContainerRef.current) {
-      const scrollAmount = 120; // Scroll by 120px
+      const scrollAmount = 120;
       scrollContainerRef.current.scrollBy({
         left: direction === 'left' ? -scrollAmount : scrollAmount,
         behavior: 'smooth'
@@ -62,28 +62,31 @@ function FrameGallery({ selectedFrame, onSelectFrame }) {
         <h3>ফ্রেম নির্বাচন করুন</h3>
         <div className="gallery-controls">
           <button className="scroll-btn" onClick={() => scroll('left')}>
-            ‹
+            ❮
           </button>
           <button className="scroll-btn" onClick={() => scroll('right')}>
-            ›
+            ❯
           </button>
         </div>
       </div>
-      <div className="frame-list" ref={scrollContainerRef}>
-        {frames.map((frame) => (
-          <div
-            key={frame.id}
-            className={`frame-item ${selectedFrame === frame.src ? 'active' : ''}`}
-            onClick={() => onSelectFrame(frame.src)}
-            title={frame.name}
-          >
-            <img src={frame.src} alt={frame.name} />
-            <span className="check-icon">✓</span>
-          </div>
-        ))}
+
+      <div className="frames-scroll-container" ref={scrollContainerRef}>
+        <div className="frame-list">
+          {frames.map((frame) => (
+            <div
+              key={frame.id}
+              className={`frame-item ${selectedFrame === frame.src ? 'selected' : ''}`}
+              onClick={() => onSelectFrame(frame.src)}
+            >
+              <img src={frame.src} alt={frame.name} />
+              {selectedFrame === frame.src && <div className="check-icon">✓</div>}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
 }
 
 export default FrameGallery;
+

@@ -21,112 +21,59 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: var(--bg-gray);
+  background: linear-gradient(135deg, #F0FDF4 0%, #FFFFFF 50%, #E6F4F0 100%);
+  background-attachment: fixed;
 }
 
 /* Header Styles */
 .app-header {
-  background-color: var(--white);
-  border-bottom: 1px solid var(--border-color);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 2px solid var(--primary-green);
+  box-shadow: 0 4px 20px rgba(0, 106, 78, 0.08);
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
+/* ... header content ... */
+
 .header-content {
-  max-width: 100%;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 1rem;
+  padding: 0.8rem 1.5rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
 }
 
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
+/* ... logo and nav ... */
 
-.logo h1 {
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: var(--primary-green);
-  line-height: 1.1;
-  margin: 0;
-  text-transform: uppercase;
-  letter-spacing: -0.5px;
-}
-
-.nav-tabs {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.nav-tab {
-  padding: 0.6rem 1.25rem;
-  background-color: var(--primary-green);
-  color: var(--white);
-  font-size: 0.9rem;
-  font-weight: 600;
-  border-radius: 50px;
-  border: none;
-  box-shadow: 0 4px 6px rgba(0, 106, 78, 0.2);
-  transition: all 0.3s ease;
-  cursor: default;
-}
-
-.nav-tab:hover {
-  background-color: var(--dark-green);
-  transform: translateY(-1px);
-}
-
-.nav-tab.active {
-  background-color: var(--accent-red);
-  color: var(--white);
-  box-shadow: 0 4px 6px rgba(244, 42, 65, 0.3);
-}
-
-/* Main Content - Mobile First */
+/* Main Content - Card Layout */
 .app-main {
   flex: 1;
   width: 100%;
-  margin: 0 auto;
-  padding: 1rem;
+  max-width: 800px;
+  /* Optimal reading width */
+  margin: 2rem auto;
+  padding: 0 1.5rem 2rem;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 2rem;
 }
 
 .canvas-section {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.5rem;
+  align-items: center;
 }
 
-/* Desktop styles (optional, for larger screens) */
+/* Desktop Polish */
 @media (min-width: 768px) {
-  .header-content {
-    padding: 1.5rem 2rem;
-  }
-
-  .logo h1 {
-    font-size: 1.5rem;
-  }
-
-  .nav-tab {
-    font-size: 0.9rem;
-    padding: 0.5rem 1.25rem;
-  }
-
   .app-main {
-    padding: 1.5rem;
-  }
-}
-
-@media (min-width: 1024px) {
-  .app-main {
-    max-width: 1200px;
-    padding: 2rem;
+    padding: 0 2rem 3rem;
   }
 }
