@@ -33,7 +33,9 @@ function CanvasComponent({
                 height: CANVAS_SIZE,
                 backgroundColor: '#1a1a2e',
                 selection: false,
-                allowTouchScrolling: true, // Enable touch events for mobile
+                allowTouchScrolling: true,
+                preserveObjectStacking: true, // Key for layering
+                controlsAboveOverlay: true, // Allow selecting objects BEHIND the overlay
             });
         } catch (error) {
             console.warn('Canvas initialization failed or already initialized:', error);
@@ -92,9 +94,8 @@ function CanvasComponent({
                 // Calculate scale to cover canvas
                 const scaleX = CANVAS_SIZE / fabricImg.width;
                 const scaleY = CANVAS_SIZE / fabricImg.height;
-                const scale = Math.max(scaleX, scaleY);
-
-                console.log('Scale:', scale);
+                // User prefers a smaller initial scale (0.6x) and range 0.4-0.8
+                const scale = Math.max(scaleX, scaleY) * 0.6;
 
                 // Create clip path based on shape
                 let clipPath;
@@ -106,55 +107,45 @@ function CanvasComponent({
                         originX: 'center',
                         originY: 'center',
                     });
-                } else {
+                } else if (photoShape === 'circle') {
                     const circleRadius = CANVAS_SIZE * 0.35; // 35% of canvas for circle
                     clipPath = new fabric.Circle({
                         radius: circleRadius,
                         originX: 'center',
                         originY: 'center',
                     });
+                } else {
+                    // 'original' - no clipping, just standard rectangle
+                    clipPath = null;
                 }
 
                 // Apply scale and settings
                 fabricImg.scale(scale);
                 fabricImg.set({
                     selectable: true,
+                    evented: true,
                     hasControls: true,
                     hasBorders: true,
                     lockRotation: false,
                     cornerColor: '#00A651',
                     cornerStrokeColor: '#fff',
-                    cornerSize: 12,
+                    cornerSize: 24, // Larger handles for easier touch
                     transparentCorners: false,
                     borderColor: '#00A651',
                     borderScaleFactor: 2,
-                    clipPath: clipPath, // Circular clipping
+                    clipPath: clipPath,
                 });
 
                 userImageRef.current = fabricImg;
                 canvas.add(fabricImg);
 
-                // Ensure frame stays on top
-                if (frameImageRef.current) {
-                    canvas.bringToFront(frameImageRef.current);
-                }
+                // IMPORTANT: Send to back so it sits behind the overlay (but controls render on top)
+                canvas.sendToBack(fabricImg);
 
                 canvas.setActiveObject(fabricImg);
                 canvas.renderAll();
                 setShowPlaceholder(false);
                 onPhotoLoaded?.(scale);
-
-                // Expose movePhoto function globally for position controls
-                window.movePhoto = (deltaX, deltaY) => {
-                    if (userImageRef.current && fabricCanvasRef.current) {
-                        const img = userImageRef.current;
-                        img.set({
-                            left: img.left + deltaX,
-                            top: img.top + deltaY,
-                        });
-                        fabricCanvasRef.current.renderAll();
-                    }
-                };
 
                 console.log('Photo loaded successfully');
             };
@@ -181,11 +172,6 @@ function CanvasComponent({
         if (!canvas || !selectedFrame) return;
 
         fabric.FabricImage.fromURL(selectedFrame).then((img) => {
-            // Remove old frame
-            if (frameImageRef.current) {
-                canvas.remove(frameImageRef.current);
-            }
-
             img.set({
                 scaleX: CANVAS_SIZE / img.width,
                 scaleY: CANVAS_SIZE / img.height,
@@ -195,14 +181,12 @@ function CanvasComponent({
                 originY: 'top',
                 selectable: false,
                 evented: false,
-                hasControls: false,
-                hasBorders: false,
             });
 
-            frameImageRef.current = img;
-            canvas.add(img);
-            canvas.bringObjectToFront(img);
-            canvas.renderAll();
+            // Set as OVERLAY image instead of a regular object
+            // This allows controlsAboveOverlay to work
+            canvas.setOverlayImage(img, canvas.renderAll.bind(canvas));
+            frameImageRef.current = img; // Keep ref just in case
         });
     }, [selectedFrame]);
 

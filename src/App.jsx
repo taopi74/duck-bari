@@ -10,7 +10,7 @@ function App() {
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState(0);
   const [initialScale, setInitialScale] = useState(1);
-  const [photoShape, setPhotoShape] = useState('circle'); // 'circle' or 'square'
+  const [photoShape, setPhotoShape] = useState('original'); // 'original', 'circle', or 'square'
   const canvasRef = useRef(null);
 
   const handlePhotoUpload = useCallback((file) => {
@@ -43,6 +43,53 @@ function App() {
       }
     }
   }, [initialScale]);
+
+  const handleMove = useCallback((direction) => {
+    console.log('handleMove called:', direction);
+    if (!canvasRef.current) {
+      console.error('No canvasRef');
+      return;
+    }
+
+    const canvas = canvasRef.current;
+    const activeObj = canvas.getActiveObject();
+    console.log('Active Object:', activeObj);
+
+    // If no active object, try to find the user image (it should be the only selectable one)
+    const objects = canvas.getObjects();
+    console.log('All Objects:', objects.length, objects);
+
+    const targetObj = activeObj || objects.find(obj => obj.selectable);
+    console.log('Target Object:', targetObj);
+
+    if (targetObj) {
+      const step = 20; // Larger step size for 1080p canvas
+
+      let deltaX = 0;
+      let deltaY = 0;
+
+      switch (direction) {
+        case 'up': deltaY = -step; break;
+        case 'down': deltaY = step; break;
+        case 'left': deltaX = -step; break;
+        case 'right': deltaX = step; break;
+        default: break;
+      }
+
+      console.log('Moving by:', deltaX, deltaY);
+
+      targetObj.set({
+        left: targetObj.left + deltaX,
+        top: targetObj.top + deltaY,
+      });
+      targetObj.setCoords();
+      canvas.setActiveObject(targetObj); // Force selection so user sees it moving
+      canvas.requestRenderAll(); // Better for animation/updates
+      console.log('Moved to:', targetObj.left, targetObj.top);
+    } else {
+      console.warn('No target object found to move');
+    }
+  }, []);
 
   const handleDownload = useCallback(() => {
     if (!canvasRef.current) return;
@@ -107,6 +154,7 @@ function App() {
           photoShape={photoShape}
           onShapeChange={setPhotoShape}
           onReset={handleReset}
+          onMove={handleMove}
           onDownload={handleDownload}
           hasPhoto={!!userPhoto}
         />

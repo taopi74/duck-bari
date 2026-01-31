@@ -9,6 +9,7 @@ function Controls({
     photoShape,
     onShapeChange,
     onReset,
+    onMove,
     onDownload,
     hasPhoto,
 }) {
@@ -18,6 +19,13 @@ function Controls({
             <div className="controls-section">
                 <h4>ছবির আকার</h4>
                 <div className="btn-group">
+                    <button
+                        className={`control-btn ${photoShape === 'original' ? 'primary' : ''}`}
+                        onClick={() => onShapeChange('original')}
+                        disabled={!hasPhoto}
+                    >
+                        <span className="icon">⬜</span> আসল
+                    </button>
                     <button
                         className={`control-btn ${photoShape === 'circle' ? 'primary' : ''}`}
                         onClick={() => onShapeChange('circle')}
@@ -42,7 +50,7 @@ function Controls({
                     <button className="position-btn" disabled> </button>
                     <button
                         className="control-btn position-btn"
-                        onClick={() => window.movePhoto && window.movePhoto(0, -10)}
+                        onClick={() => onMove && onMove('up')}
                         disabled={!hasPhoto}
                     >
                         ↑
@@ -51,15 +59,22 @@ function Controls({
 
                     <button
                         className="control-btn position-btn"
-                        onClick={() => window.movePhoto && window.movePhoto(-10, 0)}
+                        onClick={() => onMove && onMove('left')}
                         disabled={!hasPhoto}
                     >
                         ←
                     </button>
-                    <button className="position-btn center-btn" disabled>●</button>
+                    <button
+                        className="control-btn position-btn center-btn"
+                        onClick={onReset}
+                        disabled={!hasPhoto}
+                        title="কেন্দ্রে আনুন"
+                    >
+                        ●
+                    </button>
                     <button
                         className="control-btn position-btn"
-                        onClick={() => window.movePhoto && window.movePhoto(10, 0)}
+                        onClick={() => onMove && onMove('right')}
                         disabled={!hasPhoto}
                     >
                         →
@@ -68,7 +83,7 @@ function Controls({
                     <button className="position-btn" disabled> </button>
                     <button
                         className="control-btn position-btn"
-                        onClick={() => window.movePhoto && window.movePhoto(0, 10)}
+                        onClick={() => onMove && onMove('down')}
                         disabled={!hasPhoto}
                     >
                         ↓
@@ -85,9 +100,9 @@ function Controls({
                     <input
                         type="range"
                         className="zoom-slider"
-                        min="0.3"
-                        max="3"
-                        step="0.1"
+                        min="0.1"
+                        max="2.0"
+                        step="0.05"
                         value={zoom}
                         onChange={(e) => onZoomChange(parseFloat(e.target.value))}
                         disabled={!hasPhoto}
