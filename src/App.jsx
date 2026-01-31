@@ -50,10 +50,6 @@ function App() {
 
   return (
     <div className="app">
-      {/* DEBUG: If you see this text, React is working */}
-      <div style={{ background: 'red', color: 'white', padding: '10px', textAlign: 'center', fontSize: '18px' }}>
-        DEBUG: React App Loaded - If you see this, the app is rendering!
-      </div>
       <header className="app-header">
         <div className="header-content">
           <div className="logo"><h1>আমাদের<br />গফরগাঁও</h1></div>

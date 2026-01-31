@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import * as fabric from 'fabric';
 import './Canvas.css';
+import { frames } from './FrameGallery';
 
 const CANVAS_SIZE = 1080;
 
@@ -14,6 +15,8 @@ function CanvasComponent({
     onUpload,
     canvasRef: externalCanvasRef
 }) {
+    // Find the current frame config based on selectedFrame
+    const currentFrameConfig = frames.find(f => f.src === selectedFrame) || frames[0];
     const containerRef = useRef(null);
     const canvasElRef = useRef(null);
     const fileInputRef = useRef(null);
@@ -69,14 +72,14 @@ function CanvasComponent({
         img.src = selectedFrame;
     }, [canvas, selectedFrame]);
 
-    // Load User Photo
+    // Load User Photo - using frame-specific position
     useEffect(() => {
         console.log('[DEBUG] Photo useEffect triggered, userPhoto:', userPhoto);
         if (!canvas || !userPhoto?.file) {
             console.log('[DEBUG] Early return - canvas:', !!canvas, 'userPhoto:', !!userPhoto);
             return;
         }
-        console.log('[DEBUG] Starting photo load...');
+        console.log('[DEBUG] Starting photo load with frame config:', currentFrameConfig);
         canvas.getObjects().forEach(obj => {
             if (obj.selectable) canvas.remove(obj);
         });
@@ -86,14 +89,25 @@ function CanvasComponent({
         img.onload = () => {
             console.log('[DEBUG] Image loaded! Dimensions:', img.width, 'x', img.height);
             const fabricImg = new fabric.FabricImage(img);
+
+            // Calculate scale based on frame's transparent area size
+            let targetSize;
+            if (currentFrameConfig.shape === 'circle') {
+                targetSize = currentFrameConfig.photoRadius * 2; // diameter
+            } else {
+                targetSize = Math.max(currentFrameConfig.photoWidth, currentFrameConfig.photoHeight);
+            }
+
             const baseScale = Math.max(
-                (CANVAS_SIZE * 0.7) / fabricImg.width,
-                (CANVAS_SIZE * 0.7) / fabricImg.height
+                targetSize / fabricImg.width,
+                targetSize / fabricImg.height
             );
+
             fabricImg.baseScale = baseScale;
             fabricImg.set({
-                left: CANVAS_SIZE / 2,
-                top: CANVAS_SIZE / 2,
+                // Use frame-specific position
+                left: currentFrameConfig.photoX,
+                top: currentFrameConfig.photoY,
                 originX: 'center',
                 originY: 'center',
                 scaleX: baseScale,
@@ -111,7 +125,7 @@ function CanvasComponent({
             canvas.setActiveObject(fabricImg);
             setPhotoObj(fabricImg);
             setShowPlaceholder(false);
-            console.log('[DEBUG] Photo added to canvas, placeholder hidden');
+            console.log('[DEBUG] Photo added at position:', currentFrameConfig.photoX, currentFrameConfig.photoY);
             if (onPhotoLoaded) onPhotoLoaded();
             URL.revokeObjectURL(url);
             canvas.requestRenderAll();
@@ -122,17 +136,36 @@ function CanvasComponent({
             URL.revokeObjectURL(url);
         };
         img.src = url;
-    }, [canvas, userPhoto, onPhotoLoaded]);
+    }, [canvas, userPhoto, onPhotoLoaded, currentFrameConfig]);
 
-    // Sync Controls
+    // Sync Controls and reposition when frame changes
     useEffect(() => {
         if (!canvas || !photoObj || !photoObj.baseScale) return;
-        const effectiveScale = photoObj.baseScale * zoom;
+
+        // Recalculate scale based on current frame's transparent area
+        let targetSize;
+        if (currentFrameConfig.shape === 'circle') {
+            targetSize = currentFrameConfig.photoRadius * 2;
+        } else {
+            targetSize = Math.max(currentFrameConfig.photoWidth, currentFrameConfig.photoHeight);
+        }
+
+        const newBaseScale = Math.max(
+            targetSize / photoObj.width,
+            targetSize / photoObj.height
+        );
+
+        photoObj.baseScale = newBaseScale;
+        const effectiveScale = newBaseScale * zoom;
+
         photoObj.set({
+            left: currentFrameConfig.photoX,
+            top: currentFrameConfig.photoY,
             scaleX: effectiveScale,
             scaleY: effectiveScale,
             angle: rotation
         });
+
         if (photoShape === 'circle') {
             photoObj.set('clipPath', new fabric.Circle({
                 radius: photoObj.width / 2,
@@ -152,7 +185,7 @@ function CanvasComponent({
         }
         photoObj.setCoords();
         canvas.requestRenderAll();
-    }, [canvas, photoObj, zoom, rotation, photoShape]);
+    }, [canvas, photoObj, zoom, rotation, photoShape, currentFrameConfig]);
 
     const handleFileChange = (e) => {
         const file = e.target.files[0];
