@@ -83,6 +83,7 @@ function CanvasComponent({
         const url = URL.createObjectURL(userPhoto.file);
         console.log('[DEBUG] Blob URL created:', url);
         const img = new Image();
+        img.crossOrigin = 'anonymous';
         img.onload = () => {
             console.log('[DEBUG] Image loaded! Dimensions:', img.width, 'x', img.height);
             const fabricImg = new fabric.FabricImage(img);
@@ -105,6 +106,7 @@ function CanvasComponent({
                 cornerSize: 36,
                 transparentCorners: false,
                 borderColor: '#00A651',
+                clip: true,
             });
             canvas.add(fabricImg);
             canvas.sendObjectToBack(fabricImg);
