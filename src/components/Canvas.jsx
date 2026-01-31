@@ -82,9 +82,11 @@ function CanvasComponent({
             if (obj.selectable) canvas.remove(obj);
         });
 
+        console.log('[DEBUG] userPhoto effect triggered, userPhoto:', userPhoto);
         const url = URL.createObjectURL(userPhoto.file);
         const img = new Image();
         img.onload = () => {
+            console.log('[DEBUG] Image loaded successfully');
             const fabricImg = new fabric.FabricImage(img);
 
             // Calculate base scale (auto-fit 70%)
@@ -123,7 +125,8 @@ function CanvasComponent({
             URL.revokeObjectURL(url);
             canvas.requestRenderAll();
         };
-        img.onerror = () => {
+        img.onerror = (err) => {
+            console.error('[DEBUG] Image load FAILED:', err);
             alert("ছবি লোড করতে সমস্যা হয়েছে।");
             URL.revokeObjectURL(url);
         };
@@ -166,8 +169,13 @@ function CanvasComponent({
     }, [canvas, photoObj, zoom, rotation, photoShape]);
 
     const handleFileChange = (e) => {
+        console.log('[DEBUG] File input change event triggered');
         const file = e.target.files[0];
-        if (file && onUpload) onUpload(file);
+        console.log('[DEBUG] Selected file:', file);
+        if (file && onUpload) {
+            console.log('[DEBUG] Calling onUpload callback');
+            onUpload(file);
+        }
         e.target.value = '';
     };
 

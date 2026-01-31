@@ -15,10 +15,12 @@ function App() {
   const canvasRef = useRef(null);
 
   const handlePhotoUpload = useCallback((file) => {
+    console.log('[DEBUG] App.handlePhotoUpload called with:', file);
     setUserPhoto({ file, id: Date.now() });
     setZoom(1);
     setRotation(0);
     setPhotoShape('circle');
+    console.log('[DEBUG] App state updated');
   }, []);
 
   const handleReset = useCallback(() => {
