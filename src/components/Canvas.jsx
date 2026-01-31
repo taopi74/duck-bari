@@ -71,27 +71,33 @@ function CanvasComponent({
 
     // Load User Photo
     useEffect(() => {
-        console.log('[DEBUG] Photo useEffect triggered, userPhoto:', userPhoto);
+        console.log('[v0] Photo useEffect triggered, userPhoto:', userPhoto);
         if (!canvas || !userPhoto?.file) {
-            console.log('[DEBUG] Early return - canvas:', !!canvas, 'userPhoto:', !!userPhoto);
+            console.log('[v0] Early return - canvas:', !!canvas, 'userPhoto:', !!userPhoto);
             return;
         }
-        console.log('[DEBUG] Starting photo load...');
-        canvas.getObjects().forEach(obj => {
-            if (obj.selectable) canvas.remove(obj);
-        });
+        console.log('[v0] Starting photo load...');
+        
+        // Remove only the previous photo, not all objects
+        const existingPhoto = canvas.getObjects().find(obj => obj._isUserPhoto);
+        if (existingPhoto) {
+            canvas.remove(existingPhoto);
+        }
+        
         const url = URL.createObjectURL(userPhoto.file);
-        console.log('[DEBUG] Blob URL created:', url);
+        console.log('[v0] Blob URL created:', url);
         const img = new Image();
         img.crossOrigin = 'anonymous';
+        
         img.onload = () => {
-            console.log('[DEBUG] Image loaded! Dimensions:', img.width, 'x', img.height);
+            console.log('[v0] Image loaded! Dimensions:', img.width, 'x', img.height);
             const fabricImg = new fabric.FabricImage(img);
             const baseScale = Math.max(
                 (CANVAS_SIZE * 0.7) / fabricImg.width,
                 (CANVAS_SIZE * 0.7) / fabricImg.height
             );
             fabricImg.baseScale = baseScale;
+            fabricImg._isUserPhoto = true;
             fabricImg.set({
                 left: CANVAS_SIZE / 2,
                 top: CANVAS_SIZE / 2,
@@ -106,23 +112,26 @@ function CanvasComponent({
                 cornerSize: 36,
                 transparentCorners: false,
                 borderColor: '#00A651',
-                clip: true,
             });
             canvas.add(fabricImg);
             canvas.sendObjectToBack(fabricImg);
             canvas.setActiveObject(fabricImg);
             setPhotoObj(fabricImg);
             setShowPlaceholder(false);
-            console.log('[DEBUG] Photo added to canvas, placeholder hidden');
+            console.log('[v0] Photo added to canvas, placeholder hidden');
             if (onPhotoLoaded) onPhotoLoaded();
-            URL.revokeObjectURL(url);
             canvas.requestRenderAll();
+            setTimeout(() => {
+                URL.revokeObjectURL(url);
+            }, 100);
         };
+        
         img.onerror = (err) => {
-            console.error('[DEBUG] Image load FAILED:', err);
+            console.error('[v0] Image load FAILED:', err);
             alert('ছবি লোড করতে সমস্যা!');
             URL.revokeObjectURL(url);
         };
+        
         img.src = url;
     }, [canvas, userPhoto, onPhotoLoaded]);
 
